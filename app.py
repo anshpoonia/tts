@@ -5,6 +5,10 @@ import os
 
 app = Flask(__name__)
 tts = TTS(model_name="tts_models/en/jenny/jenny", progress_bar=False)
+root = os.getcwd()
+dirt = os.path.join(root, "files")
+os.mkdir(dirt)
+
 
 
 def hashit(input_string):
@@ -16,7 +20,7 @@ def hashit(input_string):
 
 
 def voiceit(text, loc):
-    tts.tts_to_file(text=text, file_path=f"files/{loc}.wav")
+    tts.tts_to_file(text=text, file_path=os.path.join(dirt, f"{loc}.wav"))
 
 
 @app.route('/')
@@ -26,7 +30,7 @@ def index():
         text = request.args.get("text")
         # model = request.args.get("v")
         loc = hashit(str(phone_number) + text)
-        if not os.path.isfile(os.path.join("files", f"{loc}.wav")):
+        if not os.path.isfile(os.path.join(dirt, f"{loc}.wav")):
             voiceit(text, loc)
     except:
         return jsonify({"message": "Use the following get parameters",
@@ -40,7 +44,7 @@ def index():
 @app.route('/file')
 def file():
     h = request.args.get("h")
-    return send_file(f"files/{h}.wav")
+    return send_file(os.path.join(dirt, f"{h}.wav"))
 
 
 if __name__ == "__main__":

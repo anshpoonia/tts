@@ -7,8 +7,7 @@ WORKDIR /root
 COPY . /root/
 
 RUN pip3 install llvmlite --ignore-installed
-RUN pip3 install torch torchaudio
-RUN pip3 install -r requirements.txt
+RUN pip3 install TTS
 
 EXPOSE 5000
 
