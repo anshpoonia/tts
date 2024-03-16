@@ -12,6 +12,7 @@ def modify_function(filename, class_name, function_name, new_code):
     with open(filename, 'r') as file:
         tree = ast.parse(file.read())
 
+    print(tree.body)
     # Find the specified class in the AST
     for node in tree.body:
         if isinstance(node, ast.ClassDef) and node.name == class_name:
