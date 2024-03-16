@@ -8,14 +8,17 @@ import ast
 app = Flask(__name__)
 
 
-def modify_function(filename, function_name, new_code):
+def modify_function(filename, class_name, function_name, new_code):
     with open(filename, 'r') as file:
         tree = ast.parse(file.read())
 
-    # Find the specified function in the AST and modify its body
+    # Find the specified class in the AST
     for node in tree.body:
-        if isinstance(node, ast.FunctionDef) and node.name == function_name:
-            node.body = ast.parse(new_code).body
+        if isinstance(node, ast.ClassDef) and node.name == class_name:
+            # Find the specified function inside the class and modify its body
+            for body_node in node.body:
+                if isinstance(body_node, ast.FunctionDef) and body_node.name == function_name:
+                    body_node.body = ast.parse(new_code).body
 
     # Generate modified code from the AST
     modified_code = ast.unparse(tree)
@@ -25,7 +28,7 @@ def modify_function(filename, function_name, new_code):
         file.write(modified_code)
 
 
-modify_function("/usr/local/lib64/python3.9/site-packages/TTS/utils/manage.py", "ask_tos", "return True")
+modify_function("/usr/local/lib64/python3.9/site-packages/TTS/utils/manage.py", "ModelManager", "ask_tos", "return True")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False).to(device)
 root = os.getcwd()
