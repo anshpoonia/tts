@@ -11,7 +11,7 @@ RUN sh cuda_11.8.0_520.61.05_linux.run --silent --toolkit --override
 ENV PATH=/usr/local/cuda/bin:${PATH}
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 
-RUN pip3 install Flask gunicorn supervisor pytorch==2.2.1 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+RUN pip3 install Flask gunicorn supervisor torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118
 RUN pip3 install TTS
 
 WORKDIR /root
