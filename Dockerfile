@@ -5,14 +5,8 @@ RUN yum update -y && yum install -y \
     wget \
     && yum clean all
 
-RUN wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
-RUN sh cuda_11.8.0_520.61.05_linux.run --silent --toolkit --override
-
-ENV PATH=/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
-
 RUN pip3 install Flask gunicorn supervisor
-RUN pip3 install torch==2.2.0+cu118 torchvision==0.17.0+cu118 torchaudio==2.2.0+cu118 --index-url https://download.pytorch.org/whl/cu118
+RUN pip3 install torch==2.1.0+cu118 torchvision==0.16.0+cu118 torchaudio==2.1.0+cu118 --index-url https://download.pytorch.org/whl/cu118
 RUN pip3 install TTS
 
 WORKDIR /root
