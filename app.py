@@ -64,7 +64,7 @@ def models():
 
 @app.route('/gpu')
 def is_device():
-    return device
+    return device + str(torch.__version__)
 
 
 @app.route('/voice')
