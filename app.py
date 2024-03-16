@@ -39,8 +39,8 @@ root = os.getcwd()
 os.environ["COQUI_TOS_AGREED"] = "1"
 speaker_dir = os.path.join(root, "speakers")
 save_dir = os.path.join(root, "files")
-os.mkdir(save_dir)
-
+if not os.path.isdir(save_dir):
+    os.mkdir(save_dir)
 
 def hashit(input_string):
     input_bytes = input_string.encode('utf-8')
