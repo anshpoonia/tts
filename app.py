@@ -8,6 +8,7 @@ app = Flask(__name__)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False).to(device)
 root = os.getcwd()
+os.environ["COQUI_TOS_AGREED"] = "1"
 speaker_dir = os.path.join(root, "speakers")
 save_dir = os.path.join(root, "files")
 os.mkdir(save_dir)
