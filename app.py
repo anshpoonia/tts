@@ -1,11 +1,4 @@
-from flask import Flask, send_file, request, jsonify
-import hashlib
-from TTS.api import TTS
-import os
-import torch
 import ast
-
-app = Flask(__name__)
 
 
 def modify_function(filename, class_name, function_name, new_code):
@@ -29,7 +22,17 @@ def modify_function(filename, class_name, function_name, new_code):
         file.write(modified_code)
 
 
-modify_function("/usr/local/lib64/python3.9/site-packages/TTS/utils/manage.py", "ModelManager", "ask_tos", "return True")
+modify_function("/usr/local/lib64/python3.9/site-packages/TTS/utils/manage.py", "ModelManager", "ask_tos",
+                "return True")
+
+from flask import Flask, send_file, request, jsonify
+import hashlib
+from TTS.api import TTS
+import os
+import torch
+
+app = Flask(__name__)
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False).to(device)
 root = os.getcwd()
