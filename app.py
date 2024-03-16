@@ -42,6 +42,8 @@ save_dir = os.path.join(root, "files")
 if not os.path.isdir(save_dir):
     os.mkdir(save_dir)
 
+print("--running--")
+
 def hashit(input_string):
     input_bytes = input_string.encode('utf-8')
     sha256_hash = hashlib.sha256()
