@@ -1,14 +1,16 @@
-from flask import Flask, send_file, request, jsonify, redirect, url_for
+from flask import Flask, send_file, request, jsonify
 import hashlib
 from TTS.api import TTS
 import os
+import torch
 
 app = Flask(__name__)
-tts = TTS(model_name="tts_models/en/jenny/jenny", progress_bar=False)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False).to(device)
 root = os.getcwd()
-dirt = os.path.join(root, "files")
-os.mkdir(dirt)
-
+speaker_dir = os.path.join(root, "speakers")
+save_dir = os.path.join(root, "files")
+os.mkdir(save_dir)
 
 
 def hashit(input_string):
@@ -19,33 +21,45 @@ def hashit(input_string):
     return hashed_string
 
 
-def voiceit(text, loc):
-    tts.tts_to_file(text=text, file_path=os.path.join(dirt, f"{loc}.wav"))
+def voiceit(text, loc, gender, model):
+    tts.tts_to_file(text=text, speaker_wav=os.path.join(speaker_dir, gender, f"{model}.wav"),
+                    file_path=os.path.join(save_dir, f"{loc}.wav"), language="en")
+    return send_file(os.path.join(save_dir, f"{loc}.wav"))
+
+
+@app.route('/model')
+def models():
+    return jsonify({'male': str(len(os.listdir(os.path.join(speaker_dir, "male")))),
+                    'female': str(len(os.listdir(os.path.join(speaker_dir, "female"))))})
+
+
+@app.route('/gpu')
+def is_device():
+    return device
+
+
+@app.route('/voice')
+def voice():
+    try:
+        text = request.args.get("text")
+        model = request.args.get("v")
+        gender = request.args.get("gender")
+        loc = hashit(text + gender + str(model))
+        if not os.path.isfile(os.path.join("files", f"{loc}.wav")):
+            return voiceit(text, loc, gender, model)
+        else:
+            return send_file(os.path.join(save_dir, f"{loc}.wav"))
+
+    except:
+        return jsonify({"text": "Text that need to be converted into speech",
+                        "v": "Selected Voice",
+                        "gender": "Selected Gender"})
 
 
 @app.route('/')
 def index():
-    try:
-        phone_number = request.args.get("p")
-        text = request.args.get("text")
-        # model = request.args.get("v")
-        loc = hashit(str(phone_number) + text)
-        if not os.path.isfile(os.path.join(dirt, f"{loc}.wav")):
-            voiceit(text, loc)
-    except:
-        return jsonify({"message": "Use the following get parameters",
-                        "p": "Phone Number",
-                        "text": "Text that need to be converted into speech",
-                        "v": "Selected model"})
-    else:
-        return redirect(url_for("file", h=loc))
-
-
-@app.route('/file')
-def file():
-    h = request.args.get("h")
-    return send_file(os.path.join(dirt, f"{h}.wav"))
+    return send_file(os.path.join(root, "index.html"))
 
 
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0')
+    app.run(debug=False, host='0.0.0.0', port=5000)
