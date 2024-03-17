@@ -87,6 +87,10 @@ def voice():
                         "gender": "Selected Gender"})
 
 
+@app.route('/favicon.ico')
+def icon():
+    return send_file(os.path.join(root, "favicon.ico"))
+
 @app.route('/')
 def index():
     return send_file(os.path.join(root, "index.html"))
