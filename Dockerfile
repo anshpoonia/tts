@@ -19,4 +19,4 @@ EXPOSE 5000
 
 #CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 #CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
-CMD ["python3", "app.py"]
+#CMD ["python3", "app.py"]
