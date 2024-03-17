@@ -52,9 +52,9 @@ def hashit(input_string):
     return hashed_string
 
 
-def voiceit(text, loc, gender, model):
+def voiceit(text, loc, gender, model, lang="en"):
     tts.tts_to_file(text=text, speaker_wav=os.path.join(speaker_dir, gender, f"{model}.wav"),
-                    file_path=os.path.join(save_dir, f"{loc}.wav"), language="en")
+                    file_path=os.path.join(save_dir, f"{loc}.wav"), language=lang)
     return send_file(os.path.join(save_dir, f"{loc}.wav"))
 
 
@@ -75,9 +75,10 @@ def voice():
         text = request.args.get("text")
         model = request.args.get("v")
         gender = request.args.get("gender")
+        lang = request.args.get("lang")
         loc = hashit(text + gender + str(model))
         if not os.path.isfile(os.path.join("files", f"{loc}.wav")):
-            return voiceit(text, loc, gender, model)
+            return voiceit(text, loc, gender, model, lang)
         else:
             return send_file(os.path.join(save_dir, f"{loc}.wav"))
 
