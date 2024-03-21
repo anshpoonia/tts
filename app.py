@@ -28,6 +28,7 @@ modify_function("/usr/local/lib64/python3.9/site-packages/TTS/utils/manage.py", 
 from flask import Flask, send_file, request, jsonify
 import hashlib
 from TTS.api import TTS
+import whisper
 import os
 import torch
 
@@ -36,6 +37,7 @@ app = Flask(__name__)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False).to(device)
 root = os.getcwd()
+model = whisper.load_model("base", device=device, download_root=os.path.join(root, "whisper_models"))
 os.environ["COQUI_TOS_AGREED"] = "1"
 speaker_dir = os.path.join(root, "speakers")
 save_dir = os.path.join(root, "files")
@@ -43,6 +45,7 @@ if not os.path.isdir(save_dir):
     os.mkdir(save_dir)
 
 print("--running--")
+
 
 def hashit(input_string):
     input_bytes = input_string.encode('utf-8')
@@ -88,13 +91,45 @@ def voice():
                         "gender": "Selected Gender"})
 
 
+@app.route('/stt', methods=["POST"])
+def stt():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'})
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'})
+
+        file_path = os.path.join(save_dir, file.filename)
+        file.save(file_path)
+
+        file_size_bytes = os.path.getsize(file_path)
+        file_size_kb = file_size_bytes / 1024
+        file_size_mb = file_size_kb / 1024
+
+        if file_size_mb > 24:
+            return jsonify({"error": f"File size exceed 25MB ({file_size_mb}MB)"})
+
+        text = model.transcribe(file_path)
+        return jsonify({"text": text["text"]})
+
+    except:
+        return jsonify({'error': 'unknown'})
+
 @app.route('/favicon.ico')
 def icon():
     return send_file(os.path.join(root, "favicon.ico"))
 
+
 @app.route('/')
 def index():
     return send_file(os.path.join(root, "index.html"))
+
+
+@app.route('/stt', methods=["GET"])
+def stt_index():
+    return send_file(os.path.join(root, "stt.html"))
 
 
 if __name__ == "__main__":
