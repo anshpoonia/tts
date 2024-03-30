@@ -69,6 +69,11 @@
             font-family: monospace;
             width: 20rem;
         }
+        .voice_holder{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .voice
         {
             font-size: 1.1rem;
@@ -102,7 +107,14 @@
         .audio
         {
             display: flex;
+            background-color: #222222;
+            height: 80%;
+            border-radius: 1.5rem;
             justify-content: center;
+            align-items: center;
+            color: white;
+            font-family: monospace;
+            text-align: center;
         }
     </style>
 </head>
@@ -114,11 +126,11 @@
         <select name="gender" class="gender">
                 <option value="male">Male</option>
                 <option value="female">Female</option>
+                <option value="custom">Custom</option>
         </select>
 
-        <select name="voice" class="voice">
-
-        </select>
+        <div class="voice_holder">
+        </div>
 
         <select name="lang" class="lang">
                 <option value="en">English</option>
@@ -152,6 +164,7 @@
     let voice_tag = document.querySelector(".voice");
     let lang_tag = document.querySelector(".lang");
     let audio_tag = document.querySelector(".audio")
+    let voice_holder = document.querySelector(".voice_holder")
 
 
     button.addEventListener("click", () => {
@@ -164,7 +177,21 @@
         {
             disable_input()
             console.log(text, gender, voice, lang)
-            send(text, gender, voice, lang);
+            if (gender === "custom")
+            {
+                if (voice.length !== 4)
+                {
+                    audio_tag.innerHTML = "Invalid Voice Code"
+                    enable_input();
+                }
+                else
+                {
+                    check_voice(text, gender, voice, lang);
+                }
+            }
+            else {
+                send(text, gender, voice, lang);
+            }
         }
         else {
             input_tag.focus()
@@ -173,14 +200,41 @@
 
 
     gender_tag.addEventListener("change", () => {
-        voice_tag.innerHTML = "";
-        add_voices(gender_tag.value);
+        if (gender_tag.value === "custom")
+        {
+            voice_holder.innerHTML = `<input type="text" maxlength="4" minlength="4" name="voice" class="voice">`
+            audio_tag.innerHTML = `Add your sample <a href="/sample"> here.</a>`
+            voice_tag = document.querySelector(".voice");
+        }
+        else {
+            voice_holder.innerHTML = `<select name="voice" class="voice"></select>`
+            voice_tag = document.querySelector(".voice");
+            add_voices(gender_tag.value);
+        }
     });
 
     document.addEventListener("DOMContentLoaded", () => {
         get_voices();
         input_tag.focus();
     });
+
+    function check_voice(text, gender, voice, lang)
+    {
+        audio_tag.innerHTML = ""
+        let url = "/sample_check?v="+voice;
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data['error'])
+                {
+                    audio_tag.innerHTML = "Invalid Voice Code"
+                    enable_input();
+                }
+                else {
+                    send(text, gender, voice, lang);
+                }
+            })
+    }
 
     function send(text, gender, voice, lang)
     {
@@ -223,6 +277,8 @@
             .then(res => res.json())
             .then(data => {
                 num_voice = data
+                voice_holder.innerHTML = `<select name="voice" class="voice"></select>`
+                voice_tag = document.querySelector(".voice");
                 add_voices("male");
             });
     }

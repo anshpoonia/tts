@@ -115,12 +115,6 @@
     });
 
 
-    gender_tag.addEventListener("change", () => {
-        voice_tag.innerHTML = "";
-        add_voices(gender_tag.value);
-    });
-
-
     function send(file)
     {
         const formData = new FormData();

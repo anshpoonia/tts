@@ -31,6 +31,7 @@ from TTS.api import TTS
 import whisper
 import os
 import torch
+import numpy as np
 
 app = Flask(__name__)
 
@@ -41,8 +42,11 @@ model = whisper.load_model("base", device=device, download_root=os.path.join(roo
 os.environ["COQUI_TOS_AGREED"] = "1"
 speaker_dir = os.path.join(root, "speakers")
 save_dir = os.path.join(root, "files")
+custom_dir = os.path.join(speaker_dir, "custom")
+
 if not os.path.isdir(save_dir):
     os.mkdir(save_dir)
+
 
 print("--running--")
 
@@ -55,8 +59,15 @@ def hashit(input_string):
     return hashed_string
 
 
-def voiceit(text, loc, gender, model, lang="en"):
-    tts.tts_to_file(text=text, speaker_wav=os.path.join(speaker_dir, gender, f"{model}.wav"),
+def rand_name():
+    char = "abcdefghijklmnopqrstuvwxyz"
+    arr = np.random.randint(0, 26, size=4)
+    name = [char[i] for i in arr]
+    return ''.join(name)
+
+
+def voiceit(text, loc, gender, v, lang="en"):
+    tts.tts_to_file(text=text, speaker_wav=os.path.join(speaker_dir, gender, f"{v}.wav"),
                     file_path=os.path.join(save_dir, f"{loc}.wav"), language=lang)
     return send_file(os.path.join(save_dir, f"{loc}.wav"))
 
@@ -76,12 +87,16 @@ def is_device():
 def voice():
     try:
         text = request.args.get("text")
-        model = request.args.get("v")
+        v = request.args.get("v")
         gender = request.args.get("gender")
         lang = request.args.get("lang")
-        loc = hashit(text + gender + str(model))
+        loc = hashit(text + gender + str(v))
+
+        if not os.path.isfile(os.path.join(speaker_dir, gender, f"{v}.wav")):
+            return jsonify({"error": "Voice doesn't exists"})
+
         if not os.path.isfile(os.path.join("files", f"{loc}.wav")):
-            return voiceit(text, loc, gender, model, lang)
+            return voiceit(text, loc, gender, v, lang)
         else:
             return send_file(os.path.join(save_dir, f"{loc}.wav"))
 
@@ -89,6 +104,40 @@ def voice():
         return jsonify({"text": "Text that need to be converted into speech",
                         "v": "Selected Voice",
                         "gender": "Selected Gender"})
+
+@app.route('/sample_check')
+def sample_check():
+    v = request.args.get("v")
+    if not os.path.isfile(os.path.join(custom_dir, f"{v}.wav")):
+        return jsonify({"error": "Voice doesn't exists"})
+    return jsonify({"response": "OK"})
+
+@app.route('/sample', methods=["POST"])
+def sample():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'})
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'})
+
+        filename = rand_name() + "." + file.filename.split(".")[-1]
+
+        file_path = os.path.join(custom_dir, filename)
+        file.save(file_path)
+
+        file_size_bytes = os.path.getsize(file_path)
+        file_size_kb = file_size_bytes / 1024
+        file_size_mb = file_size_kb / 1024
+
+        if file_size_mb > 24:
+            return jsonify({"error": f"File size exceed 25MB ({file_size_mb}MB)"})
+
+        return jsonify({"voice_code": filename.split(".")[0]})
+
+    except:
+        return jsonify({'error': 'unknown'})
 
 
 @app.route('/stt', methods=["POST"])
@@ -117,6 +166,7 @@ def stt():
     except:
         return jsonify({'error': 'unknown'})
 
+
 @app.route('/favicon.ico')
 def icon():
     return send_file(os.path.join(root, "favicon.ico"))
@@ -130,6 +180,10 @@ def index():
 @app.route('/stt', methods=["GET"])
 def stt_index():
     return send_file(os.path.join(root, "stt.html"))
+
+@app.route("/sample", methods=["GET"])
+def sample_page():
+    return send_file(os.path.join(root, "sample.html"))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Sample</title>
+    <style>
+        *{
+            font-family: monospace ;
+        }
+        body{
+            background-color: #FBF3D5;
+            margin: 0px;
+            padding: 0px;
+            height: 100vh;
+            width: 100vw;
+        }
+        .main
+        {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            height: 50vh;
+            width: 50vw;
+            transform: translate(-50%, -50%);
+        }
+        .heading
+        {
+            text-align: center;
+            font-size: 3rem;
+            font-family: sans-serif;
+            font-style: italic;
+            font-weight: bolder;
+            color: #EFBC9B;
+            margin: 2rem 0;
+        }
+        .message-holder
+        {
+            display: flex;
+            justify-content: center;
+        }
+        .input
+        {
+            font-size: 1.1rem;
+            height: 1.5rem;
+            padding: 5px;
+            border-radius: 10px;
+            margin: 1rem;
+        }
+        .button
+        {
+            margin: 1rem;
+            background-color: #EFBC9B;
+            height: 2.5rem;
+            width: 6rem;
+            border-radius: 10px;
+            padding: 5px;
+            font-size: 1.1rem;
+        }
+        .output
+        {
+            font-family: monospace;
+            display: flex;
+            justify-content: center;
+            background-color: #D6DAC8;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="main">
+    <div class="heading">SAMPLE</div>
+    <div class="body">
+        <div class="message-holder">
+            <label>
+                <input type="file" class="input" >
+            </label>
+            <button type="button" class="button">Upload</button>
+        </div>
+    </div>
+    <div class="output"></div>
+</div>
+
+<script>
+    let button = document.querySelector(".button");
+    let input_tag = document.querySelector(".input");
+    let output_tag = document.querySelector(".output");
+
+
+    button.addEventListener("click", () => {
+        let file = input_tag.files[0];
+
+        if (file)
+        {
+            const fileSize = file.size;
+            const fileSizeKB = fileSize / 1024;
+            const fileSizeMB = fileSizeKB / 1024;
+
+            if (fileSizeMB > 25)
+            {
+                display_error("File Size shouldn't exceed 25MB")
+            }
+            else
+            {
+                disable_input()
+                send(file)
+            }
+
+        }
+        else {
+            display_error("No File selected")
+        }
+    });
+
+    function send(file)
+    {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch("/sample", {
+            method: 'POST',
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+                if (data["voice_code"])
+                {
+                    display_message(data["voice_code"]);
+                }
+                else
+                {
+                    display_error(data["error"]);
+                }
+                enable_input();
+            });
+    }
+
+    function display_error(message)
+    {
+        output_tag.style.padding = "1rem"
+        output_tag.style.color = "#FB5B63"
+        output_tag.innerHTML = message
+    }
+
+    function display_message(message)
+    {
+        let mess = "Enter the following code as custom if you want to sample from this voice:\n" + message
+        output_tag.style.padding = "1rem"
+        output_tag.style.color = "#000000"
+        output_tag.innerHTML = mess;
+    }
+
+    function disable_input()
+    {
+        input_tag.disabled = true;
+        button.disabled = true;
+    }
+
+    function enable_input()
+    {
+        input_tag.disabled = false;
+        button.disabled = false;
+    }
+</script>
+</body>
+</html>
