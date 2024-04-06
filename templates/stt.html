@@ -120,7 +120,7 @@
         const formData = new FormData();
         formData.append('file', file);
 
-        fetch("/stt", {
+        fetch("/write", {
             method: 'POST',
             body: formData
         })
