@@ -57,7 +57,7 @@ class TTS:
 class STT:
     def __init__(self):
         self.model_dir = get_dir("whisper_models")
-        self.model = whisper.load_model("small", device=device, download_root=self.model_dir)
+        self.model = whisper.load_model("base", device=device, download_root=self.model_dir)
 
     def transform(self, file_path):
         text = self.model.transcribe(file_path)["text"]

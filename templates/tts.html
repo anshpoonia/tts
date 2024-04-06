@@ -19,9 +19,6 @@
                 <option value="custom">Custom</option>
         </select>
 
-        <div class="voice_holder">
-        </div>
-
         <select name="lang" class="lang">
                 <option value="en">English</option>
                 <option value="hi">Hindi</option>
@@ -41,6 +38,15 @@
                 <option value="ko">Korean</option>
                 <option value="hu">Hungarian</option>
         </select>
+
+        <div class="voice_holder">
+        </div>
+
+        <div class="custom_file">
+            <input type="file" class="speaker_file" accept=".mp3, .wav, .opus, .flac">
+        </div>
+
+
         <button type="button" class="button">Convert</button>
     </div>
     <div class="audio"></div>

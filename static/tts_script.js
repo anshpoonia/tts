@@ -4,8 +4,10 @@ let input_tag = document.querySelector(".input");
 let gender_tag = document.querySelector(".gender");
 let voice_tag = document.querySelector(".voice");
 let lang_tag = document.querySelector(".lang");
-let audio_tag = document.querySelector(".audio")
-let voice_holder = document.querySelector(".voice_holder")
+let audio_tag = document.querySelector(".audio");
+let voice_holder = document.querySelector(".voice_holder");
+let speaker_file_holder = document.querySelector(".custom_file");
+let speaker_file = document.querySelector(".speaker_file");
 
 
 button.addEventListener("click", () => {
@@ -13,12 +15,29 @@ button.addEventListener("click", () => {
     let gender = gender_tag.value;
     let voice = voice_tag.value;
     let lang = lang_tag.value;
+    let file = speaker_file.files[0];
 
     if (text.length > 0)
     {
         disable_input()
-        console.log(text, gender, voice, lang)
-        if (gender === "custom" && voice.length !== 4)
+        console.log(text, gender, voice, lang);
+        if (gender === "custom" && file)
+        {
+            const fileSize = file.size;
+            const fileSizeKB = fileSize / 1024;
+            const fileSizeMB = fileSizeKB / 1024;
+
+            if (fileSizeMB > 25)
+            {
+                handle_error("File Size shouldn't exceed 25MB");
+                enable_input();
+            }
+            else
+            {
+                send_file(file, text, gender, voice, lang)
+            }
+        }
+        else if (gender === "custom" && voice.length !== 4)
         {
             audio_tag.innerHTML = "Invalid Voice Code"
             enable_input();
@@ -37,12 +56,13 @@ gender_tag.addEventListener("change", () => {
     if (gender_tag.value === "custom")
     {
         voice_holder.innerHTML = `<input type="text" maxlength="4" minlength="4" name="voice" class="voice">`
-        audio_tag.innerHTML = `Add your sample <a href="/sample"> here.</a>`
         voice_tag = document.querySelector(".voice");
+        speaker_file_holder.style.visibility = "visible";
     }
     else {
         voice_holder.innerHTML = `<select name="voice" class="voice"></select>`
         voice_tag = document.querySelector(".voice");
+        speaker_file_holder.style.visibility = "hidden";
         add_voices(gender_tag.value);
     }
 });
@@ -51,6 +71,33 @@ document.addEventListener("DOMContentLoaded", () => {
     get_voices();
     input_tag.focus();
 });
+
+function send_file(file, text, gender, voice, lang)
+{
+    const formData = new FormData();
+        formData.append('file', file);
+
+        fetch("/add-speaker", {
+            method: 'POST',
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+                if (data["speaker_code"])
+                {
+                    let code = data["speaker_code"]
+                    handle_speaker_code(code);
+                    speaker_file.value = null;
+                    send(text, gender, code, lang);
+                }
+                else
+                {
+                    display_error(data["error"]);
+                    enable_input();
+                }
+            });
+}
 
 
 function send(text, gender, voice, lang)
@@ -83,6 +130,11 @@ function send(text, gender, voice, lang)
         });
 }
 
+function handle_speaker_code(code)
+{
+    voice_tag.value = code
+}
+
 function disable_input()
 {
     gender_tag.disabled = true;
@@ -100,6 +152,8 @@ function enable_input()
     lang_tag.disabled = false;
     button.disabled = false;
 }
+
+
 
 function handle_error(message){
     audio_tag.innerHTML = message
