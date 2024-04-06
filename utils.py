@@ -30,7 +30,7 @@ def get_dir(path):
 
 
 def get_speakers(tag):
-    d = os.path.join(get_dir("speakers"), tag)
+    d = get_dir(os.path.join(get_dir("speakers"), tag))
     speakers = [os.path.join(d, i) for i in os.listdir(d)]
     return speakers
 
