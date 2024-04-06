@@ -11,7 +11,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class TTS:
     def __init__(self):
-        self.model = coqui(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False).to(device)
+        self.model = coqui(model_name="tts_models/multilingual/multi-dataset/bark", progress_bar=False).to(device)
         self.male_speakers = get_speakers("male")
         self.female_speakers = get_speakers("female")
         self.custom_speakers = get_speakers("custom")
